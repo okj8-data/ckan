@@ -2,7 +2,7 @@
 
 import ckan.lib.navl.dictization_functions as df
 
-from ckan.common import _
+from ckan.common import _, config
 
 missing = df.missing
 StopOnError = df.StopOnError
@@ -123,3 +123,18 @@ def unicode_only(value):
     if not isinstance(value, unicode):
         raise Invalid(_('Must be a Unicode string value'))
     return value
+
+def limit_to_configured_maximum(config_option, default_limit):
+    '''
+    If the value is over a limit, it changes it to the limit. The limit is
+    defined by a configuration option, or if that is not set, a given int
+    default_limit.
+    '''
+    def callable(key, data, errors, context):
+
+        value = data.get(key)
+        limit = int(config.get(config_option, default_limit))
+        if value > limit:
+            data[key] = limit
+
+    return callable
